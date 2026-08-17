@@ -123,3 +123,21 @@ runs/
 bin/
 **/bin/
 
+# IDE and local dev environment
+.vscode/
+.eclipse/
+*.launch
+*.code-workspace
+
+# Runtime logs
+**/logs/
+*.log.gz
+
+# Local build output
+dist/
+releases/
+
+# Secrets
+.env
+.env.*
+

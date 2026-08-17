@@ -1,5 +1,5 @@
 ﻿# run_all_clients.ps1
-# Launches Minecraft client for every version x loader combination.
+# Launches Fabric Minecraft clients for every supported workspace.
 # Each client opens in its own terminal window so they run simultaneously.
 
 Write-Host "================ JAUML – Launch All Clients ================" -ForegroundColor Green
@@ -7,9 +7,7 @@ Write-Host "================ JAUML – Launch All Clients ================" -For
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # ---------------------------------------------------------------------------
-# Version map:
-#   1.20.1  -> :forge      (legacy Forge via moddev.legacyforge)
-#   others  -> :neoforge
+# Fabric clients for all supported Minecraft workspaces.
 # ---------------------------------------------------------------------------
 $clients = @(
     @{ Dir = "1.20.1";  Loader = "Fabric";   Task = ":fabric:runClient"   },

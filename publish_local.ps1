@@ -33,8 +33,8 @@ if (-not (Test-Path $distDir)) { throw "dist/ missing - run build first" }
 $jars = Get-ChildItem $distDir -Filter "jauml-*.jar"
 if ($jars.Count -eq 0) { throw "No jars in dist/" }
 
-$patchNotes = Join-Path $root "Jauml-$Version-PatchNotes.md"
-$notesFile = if (Test-Path $patchNotes) { $patchNotes } else { $null }
+$changelog = Join-Path $root "CHANGELOG.md"
+$notesFile = if (Test-Path $changelog) { $changelog } else { $null }
 
 $tag = "v$Version"
 $releaseExists = $false

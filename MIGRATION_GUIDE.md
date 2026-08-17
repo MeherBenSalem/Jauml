@@ -13,7 +13,7 @@ This guide documents the changes introduced in version `2.1.0` of the JSON libra
 
 ## Upgrade Overview
 
-Version `2.1.0` preserves **100% backward compatibility** with the public API of version `2.0.0`. Existing config files, code invocations, and static helpers continue to function exactly as before.
+Version `2.1.0` maintains backward compatibility with the public API of version `2.0.0`. Existing config files, code invocations, and static helpers continue to function as before.
 
 The primary additions are:
 1. **Validation & Type Coercion**: Configs are validated against a schema and auto-coerced if keys are malformed.
