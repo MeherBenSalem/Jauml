@@ -7,7 +7,7 @@ import com.google.gson.JsonParser;
 
 /**
  * A lightweight JSON Schema validator supporting type checks, required keys,
- * nested objects, and array item validation.
+ * nested objects, array item validation, and optional constraint keywords.
  */
 public final class JsonSchema {
 
@@ -71,7 +71,46 @@ public final class JsonSchema {
             }
         }
 
-        // 2. Check object properties
+        // 2. Check enum
+        if (schema.has("enum")) {
+            validateEnum(data, schema.getAsJsonArray("enum"), path);
+        }
+
+        // 3. String length constraints
+        if (data != null && !data.isJsonNull() && data.isJsonPrimitive() && data.getAsJsonPrimitive().isString()) {
+            String value = data.getAsString();
+            if (schema.has("minLength")) {
+                int minLength = schema.get("minLength").getAsInt();
+                if (value.length() < minLength) {
+                    throw new JsonException("Validation failed at " + path + ": string length " + value.length() + " is less than minLength " + minLength);
+                }
+            }
+            if (schema.has("maxLength")) {
+                int maxLength = schema.get("maxLength").getAsInt();
+                if (value.length() > maxLength) {
+                    throw new JsonException("Validation failed at " + path + ": string length " + value.length() + " exceeds maxLength " + maxLength);
+                }
+            }
+        }
+
+        // 4. Number range constraints
+        if (data != null && !data.isJsonNull() && data.isJsonPrimitive() && data.getAsJsonPrimitive().isNumber()) {
+            double value = data.getAsDouble();
+            if (schema.has("minimum")) {
+                double minimum = schema.get("minimum").getAsDouble();
+                if (value < minimum) {
+                    throw new JsonException("Validation failed at " + path + ": value " + value + " is less than minimum " + minimum);
+                }
+            }
+            if (schema.has("maximum")) {
+                double maximum = schema.get("maximum").getAsDouble();
+                if (value > maximum) {
+                    throw new JsonException("Validation failed at " + path + ": value " + value + " exceeds maximum " + maximum);
+                }
+            }
+        }
+
+        // 5. Check object properties
         if (data != null && data.isJsonObject()) {
             JsonObject obj = data.getAsJsonObject();
 
@@ -82,6 +121,20 @@ public final class JsonSchema {
                     String reqKey = req.getAsString();
                     if (!obj.has(reqKey) || obj.get(reqKey).isJsonNull()) {
                         throw new JsonException("Validation failed at " + path + ": missing required property '" + reqKey + "'");
+                    }
+                }
+            }
+
+            // Reject undeclared properties when additionalProperties is explicitly false
+            if (schema.has("additionalProperties")
+                    && schema.get("additionalProperties").isJsonPrimitive()
+                    && !schema.get("additionalProperties").getAsBoolean()) {
+                JsonObject properties = schema.has("properties")
+                        ? schema.getAsJsonObject("properties")
+                        : new JsonObject();
+                for (String key : obj.keySet()) {
+                    if (!properties.has(key)) {
+                        throw new JsonException("Validation failed at " + path + ": additional property '" + key + "' is not allowed");
                     }
                 }
             }
@@ -97,14 +150,47 @@ public final class JsonSchema {
             }
         }
 
-        // 3. Validate array items
-        if (data != null && data.isJsonArray() && schema.has("items")) {
+        // 6. Validate array constraints and items
+        if (data != null && data.isJsonArray()) {
             JsonArray arr = data.getAsJsonArray();
-            JsonObject itemsSchema = schema.getAsJsonObject("items");
-            for (int i = 0; i < arr.size(); i++) {
-                validate(arr.get(i), itemsSchema, path + "[" + i + "]");
+            if (schema.has("minItems")) {
+                int minItems = schema.get("minItems").getAsInt();
+                if (arr.size() < minItems) {
+                    throw new JsonException("Validation failed at " + path + ": array has " + arr.size() + " items, fewer than minItems " + minItems);
+                }
+            }
+            if (schema.has("maxItems")) {
+                int maxItems = schema.get("maxItems").getAsInt();
+                if (arr.size() > maxItems) {
+                    throw new JsonException("Validation failed at " + path + ": array has " + arr.size() + " items, more than maxItems " + maxItems);
+                }
+            }
+            if (schema.has("items")) {
+                JsonObject itemsSchema = schema.getAsJsonObject("items");
+                for (int i = 0; i < arr.size(); i++) {
+                    validate(arr.get(i), itemsSchema, path + "[" + i + "]");
+                }
             }
         }
+    }
+
+    private void validateEnum(JsonElement data, JsonArray enumValues, String path) throws JsonException {
+        for (JsonElement allowed : enumValues) {
+            if (elementsEqual(data, allowed)) {
+                return;
+            }
+        }
+        throw new JsonException("Validation failed at " + path + ": value is not one of the allowed enum values");
+    }
+
+    private boolean elementsEqual(JsonElement a, JsonElement b) {
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        return a.equals(b);
     }
 
     private boolean checkType(JsonElement data, String type) {

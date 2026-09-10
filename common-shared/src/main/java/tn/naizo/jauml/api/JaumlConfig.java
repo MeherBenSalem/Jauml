@@ -15,7 +15,7 @@ public final class JaumlConfig {
     private static final PlatformProvider PLATFORM_PROVIDER = loadPlatformProvider();
     private static final Map<Path, ConfigFile> CACHE = new ConcurrentHashMap<>();
 
-    public static final String LIBRARY_VERSION = "2.1.1";
+    public static final String LIBRARY_VERSION = "2.3.0";
 
     /**
      * Checks if the current library version is compatible with the required version.
@@ -138,5 +138,31 @@ public final class JaumlConfig {
      */
     public static boolean isModLoaded(String modId) {
         return PLATFORM_PROVIDER.isModLoaded(modId);
+    }
+
+    /**
+     * Removes a cached config entry for the given subdirectory and file name.
+     * A subsequent {@link #open(String, String)} call will create a fresh {@link ConfigFile}.
+     */
+    public static void invalidate(String subdirectory, String fileName) {
+        Path resolved = PathValidator.resolveSafe(PLATFORM_PROVIDER.getConfigDirectory(), subdirectory, fileName);
+        invalidate(resolved);
+    }
+
+    /**
+     * Removes a cached config entry for the given resolved path.
+     * A subsequent {@link #open(String, String)} call will create a fresh {@link ConfigFile}.
+     */
+    public static void invalidate(Path path) {
+        if (path != null) {
+            CACHE.remove(path);
+        }
+    }
+
+    /**
+     * Clears the entire config cache. Subsequent {@link #open} calls create fresh instances.
+     */
+    public static void clearCache() {
+        CACHE.clear();
     }
 }

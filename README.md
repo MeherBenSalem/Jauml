@@ -10,6 +10,10 @@ Just Another Utility Minecraft Lib — a MultiLoader library mod providing JSON 
 - **JsonMigrator** — sequential config version migrations
 - **JaumlConfig** — unified API for opening configs with schemas, defaults, and migrations
 
+### Optional utilities
+
+The `tn.naizo.jauml.util` package provides small, optional helpers (`PlatformUtil`, `JaumlLogger`, `ModuleVersion`, `Lifecycle`) that wrap common patterns without changing the core `tn.naizo.jauml.api` API. Use them when convenient; the config API works the same without them.
+
 Shared source lives in [`common-shared/`](common-shared/). Each Minecraft version has its own Gradle workspace with Fabric and Forge/NeoForge loader modules.
 
 ## Supported versions
@@ -34,7 +38,9 @@ See [`MIGRATION_GUIDE.md`](MIGRATION_GUIDE.md) for API examples and upgrade note
 
 ```java
 ConfigFile config = JaumlConfig.open("my_mod", "settings");
-JsonObject data = config.get();
+JsonObject data = config.asJsonObject();
+boolean enabled = config.getBoolean("enabled", true);
+int port = config.getInt("port", 8080);
 ```
 
 ## Building from source

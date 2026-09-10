@@ -99,6 +99,111 @@ public class JsonSchemaTest {
         assertFalse(schema.isValid(invalidTags));
     }
 
+    @Test
+    public void testEnumValidation() {
+        String schemaJson = "{\"type\": \"string\", \"enum\": [\"red\", \"green\", \"blue\"]}";
+        JsonSchema schema = JsonSchema.parse(schemaJson);
+
+        assertTrue(schema.isValid(new JsonPrimitive("green")));
+        assertFalse(schema.isValid(new JsonPrimitive("yellow")));
+
+        JsonException ex = assertThrows(JsonException.class, () -> schema.validate(new JsonPrimitive("yellow")));
+        assertTrue(ex.getMessage().contains("#"));
+        assertTrue(ex.getMessage().contains("enum"));
+    }
+
+    @Test
+    public void testMinimumMaximum() {
+        String schemaJson = "{\"type\": \"number\", \"minimum\": 0, \"maximum\": 100}";
+        JsonSchema schema = JsonSchema.parse(schemaJson);
+
+        assertTrue(schema.isValid(new JsonPrimitive(50)));
+        assertTrue(schema.isValid(new JsonPrimitive(0)));
+        assertTrue(schema.isValid(new JsonPrimitive(100)));
+        assertFalse(schema.isValid(new JsonPrimitive(-1)));
+        assertFalse(schema.isValid(new JsonPrimitive(101)));
+
+        JsonException ex = assertThrows(JsonException.class, () -> schema.validate(new JsonPrimitive(-1)));
+        assertTrue(ex.getMessage().contains("#"));
+        assertTrue(ex.getMessage().contains("minimum"));
+    }
+
+    @Test
+    public void testMinLengthMaxLength() {
+        String schemaJson = "{\"type\": \"string\", \"minLength\": 2, \"maxLength\": 5}";
+        JsonSchema schema = JsonSchema.parse(schemaJson);
+
+        assertTrue(schema.isValid(new JsonPrimitive("ab")));
+        assertTrue(schema.isValid(new JsonPrimitive("abcde")));
+        assertFalse(schema.isValid(new JsonPrimitive("a")));
+        assertFalse(schema.isValid(new JsonPrimitive("abcdef")));
+
+        JsonException ex = assertThrows(JsonException.class, () -> schema.validate(new JsonPrimitive("a")));
+        assertTrue(ex.getMessage().contains("#"));
+        assertTrue(ex.getMessage().contains("minLength"));
+    }
+
+    @Test
+    public void testAdditionalPropertiesFalse() {
+        String schemaJson = "{" +
+                "\"type\": \"object\"," +
+                "\"additionalProperties\": false," +
+                "\"properties\": {" +
+                "\"name\": {\"type\": \"string\"}," +
+                "\"age\": {\"type\": \"number\"}" +
+                "}" +
+                "}";
+        JsonSchema schema = JsonSchema.parse(schemaJson);
+
+        JsonObject valid = new JsonObject();
+        valid.addProperty("name", "Alice");
+        valid.addProperty("age", 25);
+        assertTrue(schema.isValid(valid));
+
+        JsonObject extraKey = new JsonObject();
+        extraKey.addProperty("name", "Alice");
+        extraKey.addProperty("extra", "not allowed");
+        assertFalse(schema.isValid(extraKey));
+
+        JsonException ex = assertThrows(JsonException.class, () -> schema.validate(extraKey));
+        assertTrue(ex.getMessage().contains("#"));
+        assertTrue(ex.getMessage().contains("extra"));
+    }
+
+    @Test
+    public void testMinItemsMaxItems() {
+        String schemaJson = "{\"type\": \"array\", \"minItems\": 1, \"maxItems\": 3, \"items\": {\"type\": \"string\"}}";
+        JsonSchema schema = JsonSchema.parse(schemaJson);
+
+        JsonArray valid = new JsonArray();
+        valid.add("a");
+        valid.add("b");
+        assertTrue(schema.isValid(valid));
+
+        assertFalse(schema.isValid(new JsonArray()));
+        JsonArray tooMany = new JsonArray();
+        tooMany.add("a");
+        tooMany.add("b");
+        tooMany.add("c");
+        tooMany.add("d");
+        assertFalse(schema.isValid(tooMany));
+
+        JsonException ex = assertThrows(JsonException.class, () -> schema.validate(new JsonArray()));
+        assertTrue(ex.getMessage().contains("#"));
+        assertTrue(ex.getMessage().contains("minItems"));
+    }
+
+    @Test
+    public void testSchemasWithoutNewKeywordsUnchanged() {
+        String schemaJson = "{\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\"}}}";
+        JsonSchema schema = JsonSchema.parse(schemaJson);
+
+        JsonObject withExtra = new JsonObject();
+        withExtra.addProperty("name", "Bob");
+        withExtra.addProperty("unknown", 42);
+        assertTrue(schema.isValid(withExtra));
+    }
+
     private void rootAdd(JsonObject root, String key, JsonObject child) {
         root.add(key, child);
     }

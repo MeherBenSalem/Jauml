@@ -18,6 +18,13 @@ public class LegacyCompatibilityTest {
     @BeforeEach
     public void setUp() {
         TestPlatformProvider.setTempDir(tempDir);
+        JaumlConfig.clearCache();
+    }
+
+    @Test
+    public void testLibraryVersionCompatibility() {
+        assertTrue(JaumlConfig.LIBRARY_VERSION.startsWith("2."));
+        assertTrue(JaumlConfig.isCompatible("2.0.0"));
     }
 
     @Test

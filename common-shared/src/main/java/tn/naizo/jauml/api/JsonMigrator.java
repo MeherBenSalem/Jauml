@@ -21,6 +21,19 @@ public final class JsonMigrator {
 
     // Map of: fromVersion -> (toVersion -> MigrationFunction)
     private final Map<String, Map<String, Function<JsonObject, JsonObject>>> migrations = new HashMap<>();
+    private String preferredVersionKey;
+
+    /**
+     * Sets the preferred version key used when reading and updating version fields during migration.
+     * When unset, the default alias list is used for detection and "version" is created if none exist.
+     */
+    public void setPreferredVersionKey(String key) {
+        this.preferredVersionKey = key;
+    }
+
+    public String getPreferredVersionKey() {
+        return preferredVersionKey;
+    }
 
     /**
      * Registers a migration function to upgrade from one version to another.
@@ -41,7 +54,7 @@ public final class JsonMigrator {
         }
         
         JsonObject current = JsonLib.deepClone(json).getAsJsonObject();
-        String currentVersion = JsonLib.detectVersion(current).orElse(null);
+        String currentVersion = JsonLib.detectVersion(current, preferredVersionKey).orElse(null);
         if (currentVersion == null) {
             throw new JsonException("Migration failed: no source version key detected in JSON");
         }
@@ -98,6 +111,10 @@ public final class JsonMigrator {
     }
 
     private void updateVersionKey(JsonObject obj, String newVersion) {
+        if (preferredVersionKey != null && !preferredVersionKey.isEmpty()) {
+            obj.addProperty(preferredVersionKey, newVersion);
+            return;
+        }
         String[] versionKeys = {"version", "configVersion", "schemaVersion", "config_version", "file_version"};
         for (String key : versionKeys) {
             if (obj.has(key)) {

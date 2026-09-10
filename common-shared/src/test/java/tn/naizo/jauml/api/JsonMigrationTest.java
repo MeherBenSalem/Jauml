@@ -58,4 +58,24 @@ public class JsonMigrationTest {
 
         assertThrows(JsonException.class, () -> migrator.migrate(oldJson, "2.0"));
     }
+
+    @Test
+    public void testPreferredVersionKey() {
+        JsonMigrator migrator = new JsonMigrator();
+        migrator.setPreferredVersionKey("configVersion");
+        migrator.register("1.0", "2.0", old -> {
+            JsonObject upgraded = JsonLib.deepClone(old).getAsJsonObject();
+            upgraded.addProperty("migrated", true);
+            return upgraded;
+        });
+
+        JsonObject oldJson = new JsonObject();
+        oldJson.addProperty("configVersion", "1.0");
+        oldJson.addProperty("name", "Alice");
+
+        JsonObject migrated = migrator.migrate(oldJson, "2.0");
+
+        assertEquals("2.0", migrated.get("configVersion").getAsString());
+        assertTrue(migrated.get("migrated").getAsBoolean());
+    }
 }

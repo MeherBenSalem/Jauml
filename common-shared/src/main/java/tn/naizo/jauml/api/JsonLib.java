@@ -399,10 +399,24 @@ public final class JsonLib {
      * "version", "configVersion", "schemaVersion", "config_version", etc.
      */
     public static Optional<String> detectVersion(JsonElement root) {
+        return detectVersion(root, null);
+    }
+
+    /**
+     * Detects version number, checking {@code preferredKey} first when provided,
+     * then falling back to the standard alias list.
+     */
+    public static Optional<String> detectVersion(JsonElement root, String preferredKey) {
         if (root == null || !root.isJsonObject()) {
             return Optional.empty();
         }
         JsonObject obj = root.getAsJsonObject();
+        if (preferredKey != null && !preferredKey.isEmpty() && obj.has(preferredKey)) {
+            JsonElement el = obj.get(preferredKey);
+            if (el.isJsonPrimitive()) {
+                return Optional.of(el.getAsString());
+            }
+        }
         String[] versionKeys = {"version", "configVersion", "schemaVersion", "config_version", "file_version"};
         for (String key : versionKeys) {
             if (obj.has(key)) {

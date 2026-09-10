@@ -5,15 +5,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonParseException;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -41,10 +39,16 @@ public final class ConfigFile {
     private String targetVersion;
     private JsonObject defaultData;
 
+    private int backupRotation = 1;
+    private boolean stableSave = false;
+    private long lastKnownSize = -1;
+    private long lastKnownMtime = -1;
+
     ConfigFile(Path filePath) {
         this.filePath = filePath;
         this.rootData = new JsonObject();
         loadFromDisk();
+        updateFileSnapshot();
     }
 
     /**
@@ -55,8 +59,52 @@ public final class ConfigFile {
         lock.writeLock().lock();
         try {
             loadFromDisk();
+            updateFileSnapshot();
         } finally {
             lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Reloads from disk only if the file exists and its size or modification time has changed
+     * since the last load or save.
+     *
+     * @return true if the file was reloaded, false if unchanged or missing
+     */
+    public boolean reloadIfChanged() {
+        lock.writeLock().lock();
+        try {
+            if (!Files.exists(filePath)) {
+                return false;
+            }
+            long size = Files.size(filePath);
+            long mtime = Files.getLastModifiedTime(filePath).toMillis();
+            if (size == lastKnownSize && mtime == lastKnownMtime) {
+                return false;
+            }
+            loadFromDisk();
+            updateFileSnapshot();
+            return true;
+        } catch (IOException e) {
+            LOGGER.error("Failed to check or reload config file: " + filePath, e);
+            return false;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    private void updateFileSnapshot() {
+        try {
+            if (Files.exists(filePath)) {
+                lastKnownSize = Files.size(filePath);
+                lastKnownMtime = Files.getLastModifiedTime(filePath).toMillis();
+            } else {
+                lastKnownSize = -1;
+                lastKnownMtime = -1;
+            }
+        } catch (IOException e) {
+            lastKnownSize = -1;
+            lastKnownMtime = -1;
         }
     }
 
@@ -132,11 +180,9 @@ public final class ConfigFile {
 
     private void handleCorruptedConfig() {
         try {
-            Path backupPath = filePath.getParent().resolve(filePath.getFileName().toString() + ".bak");
-            Files.deleteIfExists(backupPath);
             if (Files.exists(filePath)) {
-                Files.move(filePath, backupPath);
-                LOGGER.warn("Corrupted config file backed up to {}", backupPath);
+                rotateBackups(filePath);
+                LOGGER.warn("Corrupted config file backed up before reset: {}", filePath);
             }
         } catch (IOException e) {
             LOGGER.error("Failed to create backup of corrupted config file: " + filePath, e);
@@ -148,26 +194,76 @@ public final class ConfigFile {
         save();
     }
 
+    private void rotateBackups(Path sourceFile) throws IOException {
+        String baseName = sourceFile.getFileName().toString();
+        Path parent = sourceFile.getParent();
+        Path bakPath = parent.resolve(baseName + ".bak");
+
+        if (backupRotation <= 1) {
+            Files.deleteIfExists(bakPath);
+            if (Files.exists(sourceFile)) {
+                Files.move(sourceFile, bakPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return;
+        }
+
+        int maxGen = backupRotation - 1;
+        Path oldest = parent.resolve(baseName + ".bak." + maxGen);
+        Files.deleteIfExists(oldest);
+        for (int i = maxGen - 1; i >= 1; i--) {
+            Path from = parent.resolve(baseName + ".bak." + i);
+            Path to = parent.resolve(baseName + ".bak." + (i + 1));
+            if (Files.exists(from)) {
+                Files.move(from, to, StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+        if (Files.exists(bakPath)) {
+            Files.move(bakPath, parent.resolve(baseName + ".bak.1"), StandardCopyOption.REPLACE_EXISTING);
+        }
+        if (Files.exists(sourceFile)) {
+            Files.move(sourceFile, bakPath, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
 
     /**
      * Writes the current in-memory configuration back to disk atomically.
      */
     public void save() {
         lock.readLock().lock();
+        JsonObject snapshot;
+        boolean useStable;
         try {
-            // Ensure parent directories exist
+            snapshot = JsonLib.deepClone(rootData).getAsJsonObject();
+            useStable = stableSave;
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        try {
             Path parent = filePath.getParent();
             if (parent != null && !Files.exists(parent)) {
                 Files.createDirectories(parent);
             }
 
-            try (Writer writer = Files.newBufferedWriter(filePath)) {
-                GSON.toJson(rootData, writer);
+            String content = useStable
+                    ? JsonLib.stableStringify(snapshot)
+                    : GSON.toJson(snapshot);
+
+            Path tempFile = Files.createTempFile(parent != null ? parent : filePath.toAbsolutePath().getParent(), ".jauml-", ".tmp");
+            try {
+                Files.writeString(tempFile, content, StandardCharsets.UTF_8);
+                try {
+                    Files.move(tempFile, filePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                } catch (AtomicMoveNotSupportedException e) {
+                    Files.move(tempFile, filePath, StandardCopyOption.REPLACE_EXISTING);
+                }
+            } finally {
+                Files.deleteIfExists(tempFile);
             }
+            updateFileSnapshot();
         } catch (IOException e) {
             LOGGER.error("Failed to save config file: " + filePath, e);
-        } finally {
-            lock.readLock().unlock();
         }
     }
 
@@ -186,7 +282,10 @@ public final class ConfigFile {
         lock.writeLock().lock();
         try {
             this.rootData = new JsonObject();
-            return Files.deleteIfExists(filePath);
+            boolean deleted = Files.deleteIfExists(filePath);
+            lastKnownSize = -1;
+            lastKnownMtime = -1;
+            return deleted;
         } catch (IOException e) {
             LOGGER.error("Failed to delete config file: " + filePath, e);
             return false;
@@ -248,6 +347,110 @@ public final class ConfigFile {
         } finally {
             lock.writeLock().unlock();
         }
+    }
+
+    /**
+     * Sets how many backup generations to keep when rotating corrupted config backups.
+     * Values of 0 or 1 retain the single {@code .bak} file behavior; values greater than 1
+     * rotate through {@code .bak}, {@code .bak.1}, and so on.
+     */
+    public ConfigFile setBackupRotation(int generations) {
+        lock.writeLock().lock();
+        try {
+            this.backupRotation = Math.max(0, generations);
+            return this;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * When true, saves use {@link JsonLib#stableStringify} for deterministic key ordering.
+     * Default is false (standard pretty Gson output).
+     */
+    public ConfigFile setStableSave(boolean stable) {
+        lock.writeLock().lock();
+        try {
+            this.stableSave = stable;
+            return this;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Returns a deep clone of the root JSON object. Mutations to the returned object
+     * do not affect the in-memory config until written back via {@link #setByPath} or setters.
+     */
+    public JsonObject asJsonObject() {
+        lock.readLock().lock();
+        try {
+            return JsonLib.deepClone(rootData).getAsJsonObject();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Alias for {@link #asJsonObject()}.
+     */
+    public JsonObject getRoot() {
+        return asJsonObject();
+    }
+
+    /**
+     * Returns a deep clone of the value at the given path, if present.
+     * Mutations to the returned element do not affect the in-memory config.
+     */
+    public Optional<JsonElement> getByPath(String path) {
+        lock.readLock().lock();
+        try {
+            return JsonLib.getByPath(rootData, path).map(JsonLib::deepClone);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public ConfigFile setByPath(String path, JsonElement value) {
+        lock.writeLock().lock();
+        try {
+            JsonLib.setByPath(rootData, path, value);
+            return this;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public String getStringByPath(String path, String defaultValue) {
+        return getByPath(path)
+                .filter(el -> el.isJsonPrimitive() && el.getAsJsonPrimitive().isString())
+                .map(JsonElement::getAsString)
+                .orElse(defaultValue);
+    }
+
+    public String getStringByPath(String path) {
+        return getStringByPath(path, null);
+    }
+
+    public int getIntByPath(String path, int defaultValue) {
+        return getByPath(path)
+                .filter(el -> el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber())
+                .map(JsonElement::getAsInt)
+                .orElse(defaultValue);
+    }
+
+    public double getDoubleByPath(String path, double defaultValue) {
+        return getByPath(path)
+                .filter(el -> el.isJsonPrimitive() && el.getAsJsonPrimitive().isNumber())
+                .map(JsonElement::getAsDouble)
+                .orElse(defaultValue);
+    }
+
+    public boolean getBooleanByPath(String path, boolean defaultValue) {
+        return getByPath(path)
+                .filter(el -> el.isJsonPrimitive() && el.getAsJsonPrimitive().isBoolean())
+                .map(JsonElement::getAsBoolean)
+                .orElse(defaultValue);
     }
 
     // ==================== GETTERS ====================
