@@ -74,7 +74,11 @@ jobs:
         if: steps.prebuilt.outputs.found != 'true'
         with:
           distribution: temurin
-          java-version: "25"
+          # 1.20.1 needs 17, 1.21.x needs 21, 26.x needs 25
+          java-version: |
+            17
+            21
+            25
 
       - uses: gradle/actions/setup-gradle@v4
         if: steps.prebuilt.outputs.found != 'true'
@@ -87,7 +91,19 @@ jobs:
           built=0
           for ws in 1.20.1 1.21.1 1.21.11 26.1.2 26.2; do
             if [ -f "$ws/gradlew" ]; then
-              echo "Building workspace $ws"
+              case "$ws" in
+                1.20.1)
+                  export JAVA_HOME="${JAVA_HOME_17_X64}"
+                  ;;
+                1.21.1|1.21.11)
+                  export JAVA_HOME="${JAVA_HOME_21_X64}"
+                  ;;
+                *)
+                  export JAVA_HOME="${JAVA_HOME_25_X64}"
+                  ;;
+              esac
+              export PATH="$JAVA_HOME/bin:$PATH"
+              echo "Building workspace $ws with $(java -version 2>&1 | head -n1)"
               (
                 cd "$ws"
                 chmod +x gradlew
