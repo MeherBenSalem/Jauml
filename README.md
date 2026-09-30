@@ -25,6 +25,7 @@ Shared source lives in [`common-shared/`](common-shared/). Each Minecraft versio
 | 1.21.11 | Fabric, NeoForge | 21 |
 | 26.1.2 | Fabric, NeoForge | 25 |
 | 26.2 | Fabric, NeoForge | 25 |
+| 26.3 | Fabric, NeoForge | 25 |
 
 ## Installation
 
@@ -45,7 +46,7 @@ int port = config.getInt("port", 8080);
 
 ## Building from source
 
-Requirements: JDK 17+ (use JDK 25 when building `26.1.2` or `26.2` workspaces).
+Requirements: JDK 17+ (use JDK 25 when building `26.1.2`, `26.2`, or `26.3` workspaces).
 
 Build and test all workspaces:
 

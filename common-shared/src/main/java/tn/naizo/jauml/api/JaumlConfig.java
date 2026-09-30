@@ -15,7 +15,7 @@ public final class JaumlConfig {
     private static final PlatformProvider PLATFORM_PROVIDER = loadPlatformProvider();
     private static final Map<Path, ConfigFile> CACHE = new ConcurrentHashMap<>();
 
-    public static final String LIBRARY_VERSION = "2.3.0";
+    public static final String LIBRARY_VERSION = "2.3.1";
 
     /**
      * Checks if the current library version is compatible with the required version.
