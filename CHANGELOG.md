@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Version alignment**: `LIBRARY_VERSION`, all workspace `gradle.properties`, and all `MOD_VERSION` constants bumped to **2.3.1**.
+- **Build (26.3)**: Gradle 9.7.0, Fabric Loom 1.18.2, and ModDevGradle 2.0.148 (required for NeoForge 26.3 artifact generation).
 
 ## [2.3.0] - 2026-09-10
 
