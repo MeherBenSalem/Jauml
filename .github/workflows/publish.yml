@@ -89,7 +89,7 @@ jobs:
         run: |
           set -euo pipefail
           built=0
-          for ws in 1.20.1 1.21.1 1.21.11 26.1.2 26.2; do
+          for ws in 1.20.1 1.21.1 1.21.11 26.1.2 26.2 26.3; do
             if [ -f "$ws/gradlew" ]; then
               case "$ws" in
                 1.20.1)

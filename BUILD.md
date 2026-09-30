@@ -11,6 +11,7 @@ JAUML is a MultiLoader Minecraft mod library. Shared Java sources live in **`com
 | `1.21.11/` | 1.21.11   | `buildSrc`               | 21    |
 | `26.1.2/`  | 26.1.2    | `build-logic` (composite)| 25    |
 | `26.2/`    | 26.2      | `build-logic` (composite)| 25    |
+| `26.3/`    | 26.3      | `build-logic` (composite)| 25    |
 
 - **`common-shared/`** — single source of truth for library API and tests (`src/main/java`, `src/test/java`).
 - **Older workspaces (1.20.1–1.21.11)** — Gradle plugins live in `buildSrc/src/main/groovy/` (`multiloader-common.gradle`, `multiloader-loader.gradle`).
@@ -61,8 +62,8 @@ From the repository root:
 .\verify_launch.ps1
 ```
 
-This script cleans, runs `test`, and runs `build` for each version directory (`1.20.1`, `1.21.1`, `1.21.11`, `26.1.2`, `26.2`). Ensure the default `JAVA_HOME` (or toolchain resolution via Foojay) can satisfy each workspace’s Java version.
+This script cleans, runs `test`, and runs `build` for each version directory (`1.20.1`, `1.21.1`, `1.21.11`, `26.1.2`, `26.2`, `26.3`). Ensure the default `JAVA_HOME` (or toolchain resolution via Foojay) can satisfy each workspace’s Java version.
 
 ## Adding gradle.properties fields (26.1.2+)
 
-For `26.1.2` and `26.2`, any new property used in resource expansion must be added to both `gradle.properties` and the `expandProps` map in `build-logic/src/main/groovy/multiloader-common.gradle`.
+For `26.1.2`, `26.2`, and `26.3`, any new property used in resource expansion must be added to both `gradle.properties` and the `expandProps` map in `build-logic/src/main/groovy/multiloader-common.gradle`.

@@ -18,7 +18,9 @@ $clients = @(
 
     @{ Dir = "26.1.2";  Loader = "Fabric";   Task = ":fabric:runClient"   },
 
-    @{ Dir = "26.2";    Loader = "Fabric";   Task = ":fabric:runClient"   }
+    @{ Dir = "26.2";    Loader = "Fabric";   Task = ":fabric:runClient"   },
+
+    @{ Dir = "26.3";    Loader = "Fabric";   Task = ":fabric:runClient"   }
 
 )
 

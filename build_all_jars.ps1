@@ -2,7 +2,7 @@
 
 Write-Host "================ JAUML Rebuild and Collect Jars Script ================" -ForegroundColor Green
 
-$versions = @("1.20.1", "1.21.1", "1.21.11", "26.1.2", "26.2")
+$versions = @("1.20.1", "1.21.1", "1.21.11", "26.1.2", "26.2", "26.3")
 $root = Get-Location
 $distDir = Join-Path $root "dist"
 

@@ -1,6 +1,6 @@
-# JAUML JSON Utility Library Upgrade & Migration Guide (v2.0.0 to v2.3.0)
+# JAUML JSON Utility Library Upgrade & Migration Guide (v2.0.0 to v2.3.1)
 
-This guide documents the changes introduced through version `2.3.0` of the JSON library and how to safely adopt them.
+This guide documents the changes introduced through version `2.3.1` of the JSON library and how to safely adopt them.
 
 ## Compatibility Matrix
 
@@ -8,7 +8,8 @@ This guide documents the changes introduced through version `2.3.0` of the JSON 
 | :--- | :--- | :--- | :--- |
 | **2.0.0** | Minecraft 1.20.1, 1.21.1, 1.21.11, 26.1.2, 26.2 | Java 17, 21, 25 | Gson 2.10.x |
 | **2.1.0** | Minecraft 1.20.1, 1.21.1, 1.21.11, 26.1.2, 26.2 | Java 17, 21, 25 | Gson 2.10.x |
-| **2.3.0** (Current) | Minecraft 1.20.1, 1.21.1, 1.21.11, 26.1.2, 26.2 | Java 17, 21, 25 | Gson 2.10.x |
+| **2.3.0** | Minecraft 1.20.1, 1.21.1, 1.21.11, 26.1.2, 26.2 | Java 17, 21, 25 | Gson 2.10.x |
+| **2.3.1** (Current) | Minecraft 1.20.1, 1.21.1, 1.21.11, 26.1.2, 26.2, 26.3 | Java 17, 21, 25 | Gson 2.10.x |
 
 All 2.0.x public APIs remain supported. Existing config files, code invocations, and static helpers continue to function as before.
 
@@ -16,7 +17,7 @@ All 2.0.x public APIs remain supported. Existing config files, code invocations,
 
 ## Upgrade Overview
 
-Version `2.3.0` is fully backward compatible with `2.0.0` and `2.1.0` public APIs.
+Version `2.3.1` is a patch release that adds Minecraft 26.3 support with no API changes. Version `2.3.0` remains fully backward compatible with `2.0.0` and `2.1.0` public APIs.
 
 Primary additions in 2.3.0:
 1. **Root JSON access**: `asJsonObject()` / `getRoot()` return a safe deep clone.
