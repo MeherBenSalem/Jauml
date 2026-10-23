@@ -23,8 +23,24 @@ public class LegacyCompatibilityTest {
 
     @Test
     public void testLibraryVersionCompatibility() {
-        assertTrue(JaumlConfig.LIBRARY_VERSION.startsWith("2."));
+        assertTrue(JaumlConfig.LIBRARY_VERSION.startsWith("3."));
+        // 3.x keeps the whole 2.x API, so mods that asked for any 2.x release still pass.
         assertTrue(JaumlConfig.isCompatible("2.0.0"));
+        assertTrue(JaumlConfig.isCompatible("2.3.1"));
+        assertTrue(JaumlConfig.isCompatible("3.0.0"));
+        assertFalse(JaumlConfig.isCompatible("3.99.0"));
+        assertFalse(JaumlConfig.isCompatible("4.0.0"));
+        assertFalse(JaumlConfig.isCompatible("1.3.0"));
+        assertFalse(JaumlConfig.isCompatible("not-a-version"));
+    }
+
+    @Test
+    public void testLibraryVersionMatchesGradleVersion() {
+        String expected = System.getProperty("jauml.expectedVersion");
+        if (expected != null) {
+            assertEquals(expected, JaumlConfig.LIBRARY_VERSION,
+                    "JaumlConfig.LIBRARY_VERSION must match version= in gradle.properties (run ./gradlew syncVersion)");
+        }
     }
 
     @Test

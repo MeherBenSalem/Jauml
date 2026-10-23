@@ -1,56 +1,55 @@
 package tn.naizo.jauml.api;
 
+import tn.naizo.jauml.config.TypedConfig;
 import tn.naizo.jauml.internal.PathValidator;
+import tn.naizo.jauml.internal.PlatformProviders;
 import tn.naizo.jauml.spi.PlatformProvider;
+import tn.naizo.jauml.util.Version;
 import com.google.gson.JsonObject;
 
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public final class JaumlConfig {
 
-    private static final PlatformProvider PLATFORM_PROVIDER = loadPlatformProvider();
+    private static final PlatformProvider PLATFORM_PROVIDER = PlatformProviders.get();
     private static final Map<Path, ConfigFile> CACHE = new ConcurrentHashMap<>();
 
-    public static final String LIBRARY_VERSION = "2.3.1";
+    public static final String LIBRARY_VERSION = "3.0.0";
+
+    /**
+     * The oldest major version whose public API this library still ships in full. JAUML 3 removes nothing from
+     * the 2.x API, so mods written against 2.x keep passing {@link #isCompatible(String)}.
+     */
+    public static final int API_BASELINE_MAJOR = 2;
 
     /**
      * Checks if the current library version is compatible with the required version.
-     * Assumes standard semantic versioning (major versions must match, minor version must be >= required).
+     * Within the current major version the minor version must be greater than or equal to the required one;
+     * a required version from an older major is compatible down to {@link #API_BASELINE_MAJOR}.
      */
     public static boolean isCompatible(String requiredVersion) {
         if (requiredVersion == null || requiredVersion.trim().isEmpty()) {
             return false;
         }
         try {
-            String[] currentParts = LIBRARY_VERSION.split("\\.");
-            String[] reqParts = requiredVersion.split("\\.");
-            int curMajor = Integer.parseInt(currentParts[0]);
-            int curMinor = Integer.parseInt(currentParts[1]);
+            String[] reqParts = requiredVersion.trim().split("\\.");
             int reqMajor = Integer.parseInt(reqParts[0]);
             int reqMinor = Integer.parseInt(reqParts[1]);
+            Version current = Version.parse(LIBRARY_VERSION);
 
-            if (curMajor != reqMajor) {
+            if (reqMajor < API_BASELINE_MAJOR || reqMajor > current.major()) {
                 return false;
             }
-            return curMinor >= reqMinor;
+            return reqMajor < current.major() || current.minor() >= reqMinor;
         } catch (Exception e) {
             return false;
         }
     }
 
     private JaumlConfig() {}
-
-    private static PlatformProvider loadPlatformProvider() {
-        ServiceLoader<PlatformProvider> loader = ServiceLoader.load(PlatformProvider.class);
-        for (PlatformProvider provider : loader) {
-            return provider;
-        }
-        throw new IllegalStateException("Failed to find any registered PlatformProvider. Make sure a service file exists in META-INF/services/tn.naizo.jauml.spi.PlatformProvider");
-    }
 
     /**
      * Opens or creates a config file relative to the game's config directory.
@@ -117,6 +116,16 @@ public final class JaumlConfig {
             }
             return created;
         });
+    }
+
+    /**
+     * Binds {@code <config dir>/<subdirectory>/<fileName>.json} to a plain Java class whose fields are the options.
+     * See {@link TypedConfig} for comments, ranges, reloading and change listeners.
+     *
+     * @since 3.0.0
+     */
+    public static <T> TypedConfig<T> bind(String subdirectory, String fileName, Class<T> type) {
+        return TypedConfig.bind(subdirectory, fileName, type);
     }
 
     /**

@@ -4,10 +4,10 @@
 
 | Version | Supported |
 |---------|-----------|
-| 2.3.x   | Yes       |
-| < 2.3   | No        |
+| 3.0.x   | Yes       |
+| < 3.0   | No        |
 
-Security fixes are provided for the latest 2.3.x release across all supported Minecraft version workspaces.
+Security fixes are provided for the latest 3.0.x release across all supported Minecraft version workspaces.
 
 ## Reporting a vulnerability
 

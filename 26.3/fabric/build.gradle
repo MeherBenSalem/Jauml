@@ -20,6 +20,14 @@ loom {
             ideConfigGenerated(true)
             runDir('runs/client')
         }
+        gametest {
+            server()
+            setConfigName('Fabric Game Test Server')
+            // Boots a GameTest server (no EULA prompt) for JAUML's -Djauml.selfTest boot check
+            vmArg('-Dfabric-api.gametest')
+            vmArg('-Djauml.selfTest=true')
+            runDir('runs/gametest')
+        }
         server {
             server()
             setConfigName('Fabric Server')

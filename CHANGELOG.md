@@ -1,9 +1,39 @@
 # Changelog
 
-All notable changes to the JAUML JSON Utility Library will be documented in this file.
+All notable changes to JAUML will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.0.0] - 2026-10-23
+
+JAUML grows from a JSON config library into the common library for NightBeam mods. Every 2.x API is kept with
+unchanged signatures; mods built against 2.x keep working.
+
+### Added
+- **Typed configs** (`tn.naizo.jauml.config`): `JaumlConfig.bind(subdir, name, MyConfig.class)` binds a plain Java class to a JSON file. `@Comment` text and `@Range` bounds are written as `//` comment lines, comments are accepted when reading, missing keys get defaults, wrong types are coerced, out-of-range values are clamped, and change listeners, `update`, `reload`/`reloadIfChanged` and `JsonMigrator` migrations are supported.
+- **Platform facade** (`tn.naizo.jauml.platform`): `Platform` (loader, physical side, game and config directories, Minecraft version, mod versions with range checks) and `Services.load` for a mod's own `META-INF/services` implementations. Replaces the per-mod MultiLoader `Services`/`IPlatformHelper` copy.
+- **Server events and scheduler** (`tn.naizo.jauml.server`): `ServerEvents` (starting, started, stopping, stopped, tick start/end, `currentServer()`), `PlayerEvents` (join, leave) and `Scheduler` (`runLater`, `runRepeating`, `queueServerWork`), fired from Fabric API, NeoForge and Forge events.
+- **`Event<T>`** (`tn.naizo.jauml.event`): a small prioritized listener list for mods' own events.
+- **Utilities**: `Version`/`VersionRange` (Maven ranges, comparators, `~`/`^`, wildcards) and `Cooldowns` (per-key cooldowns on any clock).
+- **`PlatformProvider`** default methods: `getGameDirectory`, `isPhysicalClient`, `getModVersion`, `getModName`, `getLoadedModIds`, `getMinecraftVersion`.
+- Root Gradle build (`./gradlew buildAll`, `testAll`, `cleanAll`, `syncVersion -PmodVersion=x.y.z`) and a CI workflow that tests and builds every workspace.
+- `-Djauml.selfTest=true` boot check that logs every server event and a scheduler run, plus GameTest server runs (`runGameTestServer`, `runGametest`) in the 26.x loader modules and 1.20.1 Forge to use it without a EULA prompt.
+
+### Changed
+- **Supported Minecraft versions: 1.20.1, 1.21.1, 26.2 and 26.3.** The 1.21.11 and 26.1.2 workspaces are removed.
+- Each jar declares only its own Minecraft version (`[26.2,26.3)`, `[26.3,26.4)` instead of `[26.x,27)`).
+- On Fabric, JAUML recommends Fabric API; without it configs still work and server events stay idle with a warning.
+- Fabric 1.20.1 now needs Fabric Loader 0.16.10 or newer (the minimum of current Fabric API 0.92.12).
+- `JaumlConfig.isCompatible` accepts 2.x requirements (`API_BASELINE_MAJOR = 2`).
+- `JaumlConfigLib` stays deprecated but is no longer marked for removal; its signatures are pinned by a test.
+- `Constants.MOD_VERSION` reads `JaumlConfig.LIBRARY_VERSION`, and a test fails if it drifts from `gradle.properties`.
+- Platform providers are loaded once and shared (`PlatformUtil`, `JaumlInitializer` and `JaumlConfig` no longer each scan `ServiceLoader`).
+- Loader entrypoints no longer log template "Hello world" messages.
+- **Toolchains**: 26.2 and 26.3 on Gradle 9.8.1, Fabric Loom 1.19.3 and ModDevGradle 2.0.148; Fabric API 0.165.0+26.3 / 0.161.0+26.2 / 0.116.17+1.21.1 / 0.92.12+1.20.1; NeoForge 26.3.0.95 (stable) / 26.2.0.93 / 21.1.264; Forge 47.4.28; Parchment 2024.11.17 for 1.21.1; Fabric Loom 1.10.5 for 1.21.1.
+
+### Removed
+- Minecraft 1.21.11 and 26.1.2 builds (use JAUML 2.3.1 on those versions).
 
 ## [2.3.1] - 2026-09-30
 

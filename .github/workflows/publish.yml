@@ -70,52 +70,27 @@ jobs:
             echo "No releases/*-${VERSION}.jar — will build with Gradle"
           fi
 
+      # 21 stays JAVA_HOME for the 1.20.1/1.21.1 builds (1.20.1 compiles with the 17 toolchain);
+      # the root build hands the 26.x workspaces JAVA_HOME_25_X64.
       - uses: actions/setup-java@v4
         if: steps.prebuilt.outputs.found != 'true'
         with:
           distribution: temurin
-          # 1.20.1 needs 17, 1.21.x needs 21, 26.x needs 25
           java-version: |
             17
-            21
             25
+            21
 
       - uses: gradle/actions/setup-gradle@v4
         if: steps.prebuilt.outputs.found != 'true'
 
-      - name: Build MultiLoader workspaces
+      - name: Build MultiLoader workspaces (1.20.1, 1.21.1, 26.2, 26.3)
         if: steps.prebuilt.outputs.found != 'true'
         shell: bash
         run: |
           set -euo pipefail
-          built=0
-          for ws in 1.20.1 1.21.1 1.21.11 26.1.2 26.2 26.3; do
-            if [ -f "$ws/gradlew" ]; then
-              case "$ws" in
-                1.20.1)
-                  export JAVA_HOME="${JAVA_HOME_17_X64}"
-                  ;;
-                1.21.1|1.21.11)
-                  export JAVA_HOME="${JAVA_HOME_21_X64}"
-                  ;;
-                *)
-                  export JAVA_HOME="${JAVA_HOME_25_X64}"
-                  ;;
-              esac
-              export PATH="$JAVA_HOME/bin:$PATH"
-              echo "Building workspace $ws with $(java -version 2>&1 | head -n1)"
-              (
-                cd "$ws"
-                chmod +x gradlew
-                ./gradlew build --no-daemon
-              )
-              built=1
-            fi
-          done
-          if [ "$built" -eq 0 ]; then
-            echo "No Gradle workspaces found" >&2
-            exit 1
-          fi
+          chmod +x gradlew 1.20.1/gradlew 1.21.1/gradlew 26.2/gradlew 26.3/gradlew
+          ./gradlew buildAll --no-daemon
 
       - name: Find jars
         id: jars
@@ -190,6 +165,7 @@ jobs:
           const changelog = resolveChangelog(version);
 
           const LOADER_IDS = { fabric: 7499, forge: 7498, neoforge: 10150, quilt: 9153 };
+          const FABRIC_API_MODRINTH_ID = 'P7dR8mSH';
 
           function detect(jar) {
             const n = path.basename(jar).toLowerCase();
@@ -239,7 +215,8 @@ jobs:
                   name: `${version} · ${loader} · ${gameVersions[0]}`,
                   version_number: `${version}+${loader}-${gameVersions[0]}`,
                   changelog,
-                  dependencies: [],
+                  // Fabric jars run without Fabric API, but need it for server events and the scheduler.
+                  dependencies: loader === 'fabric' ? [{ project_id: FABRIC_API_MODRINTH_ID, dependency_type: 'optional' }] : [],
                   game_versions: gameVersions,
                   version_type: 'release',
                   loaders: [loader],
@@ -310,6 +287,9 @@ jobs:
                 releaseType: 'release',
               };
               if (gameVersionNames.length) meta.gameVersionNames = gameVersionNames;
+              if (loader === 'fabric') {
+                meta.relations = { projects: [{ slug: 'fabric-api', type: 'optionalDependency' }] };
+              }
               const cfForm = new FormData();
               cfForm.append('metadata', JSON.stringify(meta));
               cfForm.append('file', new Blob([fs.readFileSync(jar)]), path.basename(jar));

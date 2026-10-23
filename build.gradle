@@ -1,0 +1,133 @@
+String wrapperCmd(String rootDirName) {
+    File root = file(rootDirName)
+    if (System.getProperty('os.name').toLowerCase().contains('win')) {
+        return new File(root, 'gradlew.bat').absolutePath
+    }
+    return new File(root, 'gradlew').absolutePath
+}
+
+// Each workspace is its own Gradle build; the loaders it ships sit next to common/. The 26.x builds (Fabric Loom 1.19)
+// need Gradle itself on Java 25: pass -Pjava25Home=<jdk> or set JAVA_HOME_25_X64 (setup-java does).
+def workspaces = [
+    '1201': [dir: '1.20.1', loaders: ['fabric', 'forge'], java: 17],
+    '1211': [dir: '1.21.1', loaders: ['fabric', 'neoforge'], java: 21],
+    '262' : [dir: '26.2', loaders: ['fabric', 'neoforge'], java: 25],
+    '263' : [dir: '26.3', loaders: ['fabric', 'neoforge'], java: 25],
+]
+def java25Home = findProperty('java25Home') ?: System.getenv('JAVA_HOME_25_X64')
+def loaderNames = [fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge']
+
+workspaces.each { key, ws ->
+    ['build', 'test', 'clean'].each { action ->
+        tasks.register("${action}${key}", Exec) {
+            group = 'build'
+            description = action == 'build'
+                ? "Build all ${ws.dir} loaders (${ws.loaders.collect { loaderNames[it] }.join(' + ')})."
+                : "Run '${action}' in the ${ws.dir} workspace."
+            workingDir = file(ws.dir)
+            commandLine wrapperCmd(ws.dir), action
+            if (ws.java == 25 && java25Home) environment 'JAVA_HOME', java25Home
+        }
+    }
+}
+
+tasks.register('testAll') {
+    group = 'verification'
+    description = 'Run the common-shared unit tests in every workspace.'
+    dependsOn workspaces.keySet().collect { "test${it}" }
+}
+
+tasks.register('dist') {
+    group = 'build'
+    description = 'Build every workspace and copy loader jars into dist/.'
+    dependsOn workspaces.keySet().collect { "build${it}" }
+    doLast {
+        def outDir = file('dist')
+        outDir.mkdirs()
+        // Drop jars from earlier versions so publish never picks up a stale file.
+        fileTree(outDir).matching { include '*.jar' }.each { it.delete() }
+        workspaces.values().each { ws ->
+            def props = new Properties()
+            file("${ws.dir}/gradle.properties").withInputStream { props.load(it) }
+            ws.version = props.getProperty('version')
+        }
+        workspaces.values().collectMany { ws -> ws.loaders.collect { [dir: "${ws.dir}/${it}", version: ws.version] } }.each { mod ->
+            def libsDir = file("${mod.dir}/build/libs")
+            if (libsDir.exists()) {
+                fileTree(libsDir).matching {
+                    // Only the current version: libs/ keeps jars from earlier versions until a clean.
+                    include "*-${mod.version}.jar"
+                    exclude '*-sources.jar', '*-javadoc.jar', '*-dev.jar', '*-shadow.jar', '*-dev-shadow.jar'
+                }.each { jar ->
+                    copy {
+                        from jar
+                        into outDir
+                    }
+                }
+            }
+        }
+        println "Loader JARs collected in: ${outDir.absolutePath}"
+    }
+}
+
+tasks.register('buildAll') {
+    group = 'build'
+    description = 'Build every workspace and collect jars into dist/.'
+    dependsOn 'dist'
+}
+
+tasks.register('build') {
+    group = 'build'
+    description = 'Alias for buildAll so ./gradlew build still produces every loader jar.'
+    dependsOn 'buildAll'
+}
+
+tasks.register('cleanAll') {
+    group = 'build'
+    description = 'Clean every workspace and dist/.'
+    dependsOn workspaces.keySet().collect { "clean${it}" }
+    doLast {
+        def outDir = file('dist')
+        if (outDir.exists()) {
+            outDir.deleteDir()
+            println 'Cleaned dist directory.'
+        }
+    }
+}
+
+tasks.register('syncVersion') {
+    group = 'build'
+    description = 'Set version= in every workspace gradle.properties and JaumlConfig.LIBRARY_VERSION (use -PmodVersion=x.y.z).'
+    doLast {
+        def v = project.findProperty('modVersion')
+        if (!v) {
+            throw new GradleException('Pass -PmodVersion=x.y.z')
+        }
+        workspaces.values().collect { it.dir }.each { dir ->
+            def file = file("${dir}/gradle.properties")
+            if (!file.exists()) {
+                throw new GradleException("Missing ${file}")
+            }
+            def updated = false
+            def out = file.readLines().collect { line ->
+                if (line.startsWith('version=')) {
+                    updated = true
+                    return "version=${v}"
+                }
+                return line
+            }
+            if (!updated) {
+                throw new GradleException("No version= line in ${file}")
+            }
+            file.text = out.join(System.lineSeparator()) + System.lineSeparator()
+            println "Synced ${file} -> ${v}"
+        }
+        def api = file('common-shared/src/main/java/tn/naizo/jauml/api/JaumlConfig.java')
+        def pattern = ~/LIBRARY_VERSION = "[^"]*"/
+        if (!(api.text =~ pattern).find()) {
+            throw new GradleException("No LIBRARY_VERSION constant in ${api}")
+        }
+        api.text = api.text.replaceFirst(pattern, "LIBRARY_VERSION = \"${v}\"")
+        println "Synced ${api} -> ${v}"
+    }
+}

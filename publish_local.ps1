@@ -16,10 +16,10 @@ $root = $PSScriptRoot
 Set-Location $root
 
 if (-not $Version) {
-    $gp = Get-Content (Join-Path $root "26.1.2\gradle.properties") | Where-Object { $_ -match '^version=' }
+    $gp = Get-Content (Join-Path $root "26.3\gradle.properties") | Where-Object { $_ -match '^version=' }
     if ($gp -match '^version=(.+)$') { $Version = $Matches[1].Trim() }
 }
-if (-not $Version) { throw "Could not resolve version from 26.1.2/gradle.properties" }
+if (-not $Version) { throw "Could not resolve version from 26.3/gradle.properties" }
 
 Write-Host "=== Jauml local publish v$Version ===" -ForegroundColor Green
 

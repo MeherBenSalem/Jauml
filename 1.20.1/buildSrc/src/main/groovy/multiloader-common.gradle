@@ -153,6 +153,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    // LegacyCompatibilityTest checks JaumlConfig.LIBRARY_VERSION against this
+    systemProperty 'jauml.expectedVersion', project.version.toString()
 }
 
 sourceSets {

@@ -3,9 +3,8 @@ package tn.naizo.jauml.api;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tn.naizo.jauml.spi.PlatformProvider;
-
-import java.util.ServiceLoader;
+import tn.naizo.jauml.internal.SelfTest;
+import tn.naizo.jauml.platform.Platform;
 
 /**
  * Startup initialization helper that runs compatibility checks, registers migrations,
@@ -27,6 +26,7 @@ public final class JaumlInitializer {
     public static void initialize() {
         LOGGER.info("Initializing JAUML JSON library and verifying configuration...");
         runCompatibilityCheck();
+        SelfTest.registerIfEnabled();
 
         if (shouldWriteDemoConfig()) {
             initializeWithDemoConfig();
@@ -100,17 +100,6 @@ public final class JaumlInitializer {
     }
 
     private static boolean shouldWriteDemoConfig() {
-        if (Boolean.getBoolean(DEMO_CONFIG_PROPERTY)) {
-            return true;
-        }
-        try {
-            ServiceLoader<PlatformProvider> loader = ServiceLoader.load(PlatformProvider.class);
-            for (PlatformProvider provider : loader) {
-                return provider.isDevelopmentEnvironment();
-            }
-        } catch (Exception e) {
-            LOGGER.debug("Could not determine development environment status", e);
-        }
-        return false;
+        return Boolean.getBoolean(DEMO_CONFIG_PROPERTY) || Platform.isDevelopment();
     }
 }

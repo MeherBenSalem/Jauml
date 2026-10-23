@@ -24,11 +24,13 @@ cd 1.21.1
 .\gradlew.bat test
 ```
 
-To verify all workspaces:
+To build and test all workspaces (1.20.1, 1.21.1, 26.2, 26.3) from the repository root:
 
 ```powershell
-.\verify_launch.ps1
+.\gradlew.bat buildAll -Pjava25Home="C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot"
 ```
+
+See [`BUILD.md`](BUILD.md) for the JDK each workspace needs.
 
 Tests live in `common-shared/src/test/java` and run through each workspace's `common` module.
 

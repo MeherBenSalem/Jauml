@@ -20,6 +20,12 @@ legacyForge {
         client {
             client()
         }
+        gameTestServer {
+            type = 'gameTestServer'
+            // Boots a GameTest server (no EULA prompt) for JAUML's -Djauml.selfTest boot check
+            systemProperty('jauml.selfTest', 'true')
+            gameDirectory = project.file('runs/gametest')
+        }
         server {
             server()
             programArguments.add('--nogui')

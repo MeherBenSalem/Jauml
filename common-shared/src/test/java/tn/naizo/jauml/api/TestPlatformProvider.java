@@ -3,11 +3,15 @@ package tn.naizo.jauml.api;
 import tn.naizo.jauml.spi.PlatformProvider;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Mock PlatformProvider for running JUnit tests without a Minecraft server/client environment.
  */
 public class TestPlatformProvider implements PlatformProvider {
+
+    private static final Map<String, String> MOD_VERSIONS = Map.of("minecraft", "26.3", "examplelib", "1.4.2");
 
     private static Path tempDir;
 
@@ -22,7 +26,17 @@ public class TestPlatformProvider implements PlatformProvider {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return false;
+        return MOD_VERSIONS.containsKey(modId);
+    }
+
+    @Override
+    public Optional<String> getModVersion(String modId) {
+        return Optional.ofNullable(MOD_VERSIONS.get(modId));
+    }
+
+    @Override
+    public Optional<String> getModName(String modId) {
+        return "examplelib".equals(modId) ? Optional.of("Example Lib") : Optional.empty();
     }
 
     @Override

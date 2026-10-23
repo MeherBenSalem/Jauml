@@ -1,13 +1,14 @@
 package tn.naizo.jauml.util;
 
 import tn.naizo.jauml.api.JaumlConfig;
+import tn.naizo.jauml.platform.Platform;
 import tn.naizo.jauml.spi.PlatformProvider;
 
 import java.nio.file.Path;
-import java.util.ServiceLoader;
 
 /**
  * Thin wrappers around platform detection helpers from {@link JaumlConfig}.
+ * {@link Platform} offers the full set (loader, physical side, mod versions, game directory).
  */
 public final class PlatformUtil {
 
@@ -30,14 +31,6 @@ public final class PlatformUtil {
      * Fail-safe: returns {@code false} when no {@link PlatformProvider} is available.
      */
     public static boolean isDevelopmentEnvironment() {
-        try {
-            ServiceLoader<PlatformProvider> loader = ServiceLoader.load(PlatformProvider.class);
-            for (PlatformProvider provider : loader) {
-                return provider.isDevelopmentEnvironment();
-            }
-        } catch (Exception ignored) {
-            // fail-safe
-        }
-        return false;
+        return Platform.isDevelopment();
     }
 }

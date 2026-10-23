@@ -6,11 +6,14 @@ import java.util.List;
 
 /**
  * Legacy static configuration utility class.
+ * <p>
+ * Kept with unchanged signatures for the whole 3.x line: released mods link against these exact methods,
+ * some by reflection.
  *
  * @deprecated Use the modern, cached, and thread-safe instance-based API via
- * {@link JaumlConfig#open(String, String)} instead.
+ * {@link JaumlConfig#open(String, String)}, or {@link JaumlConfig#bind(String, String, Class)} for typed configs.
  */
-@Deprecated(since = "2.0", forRemoval = true)
+@Deprecated(since = "2.0")
 public class JaumlConfigLib {
 
     private JaumlConfigLib() {}
