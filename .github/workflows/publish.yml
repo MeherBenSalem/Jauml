@@ -27,6 +27,10 @@ on:
         description: "modrinth, curseforge, or both"
         required: false
         default: "both"
+      sync_project:
+        description: "Also update the Modrinth project page (body, summary and icon from marketing/); always on for tag pushes"
+        required: false
+        default: "false"
 
 jobs:
   publish:
@@ -139,6 +143,7 @@ jobs:
           VERSION: ${{ steps.ver.outputs.version }}
           JAR_LIST: ${{ steps.jars.outputs.list }}
           PLATFORMS: ${{ inputs.platforms || 'both' }}
+          SYNC_PROJECT: ${{ (github.event_name == 'push' || inputs.sync_project == 'true') && 'true' || 'false' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -166,6 +171,28 @@ jobs:
 
           const LOADER_IDS = { fabric: 7499, forge: 7498, neoforge: 10150, quilt: 9153 };
           const FABRIC_API_MODRINTH_ID = 'P7dR8mSH';
+          const syncProject = process.env.SYNC_PROJECT === 'true';
+
+          // Refreshes the Modrinth page from the marketing kit: body, summary and icon.
+          async function syncModrinthProject() {
+            const headers = { Authorization: process.env.MODRINTH_TOKEN, 'User-Agent': 'MeherBenSalem/jauml publish' };
+            const patch = {};
+            if (fs.existsSync('marketing/curseforge/description.md')) patch.body = fs.readFileSync('marketing/curseforge/description.md', 'utf8');
+            if (fs.existsSync('marketing/curseforge/summary.txt')) patch.description = fs.readFileSync('marketing/curseforge/summary.txt', 'utf8').trim();
+            if (Object.keys(patch).length) {
+              const res = await fetch(`https://api.modrinth.com/v2/project/${process.env.MODRINTH_ID}`, {
+                method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(patch),
+              });
+              if (!res.ok) throw new Error('Modrinth project PATCH ' + res.status + ' ' + (await res.text()).slice(0, 500));
+            }
+            if (fs.existsSync('marketing/images/icon.png')) {
+              const res = await fetch(`https://api.modrinth.com/v2/project/${process.env.MODRINTH_ID}/icon?ext=png`, {
+                method: 'PATCH', headers: { ...headers, 'Content-Type': 'image/png' }, body: fs.readFileSync('marketing/images/icon.png'),
+              });
+              if (!res.ok) throw new Error('Modrinth icon PATCH ' + res.status + ' ' + (await res.text()).slice(0, 500));
+            }
+            console.log('Modrinth project page updated (' + Object.keys(patch).join(', ') + ', icon)');
+          }
 
           function detect(jar) {
             const n = path.basename(jar).toLowerCase();
@@ -240,6 +267,7 @@ jobs:
                 uploaded += 1;
               }
               console.log('Modrinth uploaded', uploaded, 'version(s)');
+              if (syncProject) await syncModrinthProject();
             }
 
             if (!doCurse) return;

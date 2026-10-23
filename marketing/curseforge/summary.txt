@@ -1,0 +1,1 @@
+The shared library behind NightBeam mods: typed JSON configs with comments, server events and a tick scheduler, and one platform API for Fabric, NeoForge and Forge on 1.20.1, 1.21.1, 26.2 and 26.3.

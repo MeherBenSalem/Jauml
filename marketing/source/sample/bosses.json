@@ -1,0 +1,17 @@
+// Example Bosses settings
+{
+  // Health multiplier for every boss
+  // Range: 0.1 to 10
+  // Default: 1.0
+  "healthMultiplier": 1.0,
+  // Seconds between boss abilities
+  // Range: 1 to 60
+  // Default: 8
+  "abilityCooldown": 8,
+  // Boss difficulty preset
+  // Allowed: EASY, NORMAL, HARD
+  // Default: "NORMAL"
+  "difficulty": "NORMAL",
+  // Dimensions where bosses never spawn
+  "disabledDimensions": ["minecraft:the_end"]
+}
