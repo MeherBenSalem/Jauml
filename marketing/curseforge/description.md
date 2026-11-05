@@ -1,5 +1,9 @@
 ![Jauml 3.0](https://raw.githubusercontent.com/MeherBenSalem/jauml/main/marketing/images/banner.png)
 
+**[Docs](https://nightbeam.dev/docs/jauml) · [Discord](https://discord.gg/TJc3CxR4jK) · [The modpack](https://www.curseforge.com/minecraft/modpacks/remnants-ashen-legacy) · [Support NightBeam](https://nightbeam.dev/support) · [NightBeam Pro](https://nightbeam.dev/memberships) · [All projects](https://nightbeam.dev/projects)**
+
+> **Jauml powers every NightBeam mod.** Play them together in [Remnants: Ashen Legacy](https://www.curseforge.com/minecraft/modpacks/remnants-ashen-legacy), NightBeam's story-driven soulslike RPG modpack.
+
 ## The common library behind NightBeam mods
 
 Jauml (Just Another Utility Minecraft Library) holds the code our mods share: typed JSON configs with comments, server events with a tick scheduler, and one platform API for Fabric, NeoForge and Forge.
@@ -7,8 +11,6 @@ Jauml (Just Another Utility Minecraft Library) holds the code our mods share: ty
 **Playing?** If a mod asks for Jauml, put the jar for your loader and Minecraft version in your `mods` folder. It adds nothing to the game by itself.
 
 **3.0** is available for **Fabric, NeoForge and Forge** on **1.20.1, 1.21.1, 26.2 and 26.3**. Mods built for Jauml 2.x keep working on it.
-
-[![Documentation](https://img.shields.io/badge/Documentation-f1c36b?style=for-the-badge&logo=readthedocs&logoColor=0a0a0b)](https://nightbeam.dev/docs/jauml) [![Discord](https://img.shields.io/badge/Discord-18181b?style=for-the-badge&logo=discord&logoColor=5865F2)](https://discord.gg/TJc3CxR4jK) [![YouTube](https://img.shields.io/badge/YouTube-18181b?style=for-the-badge&logo=youtube&logoColor=FF0000)](https://www.youtube.com/@nightbeamstudio) [![Instagram](https://img.shields.io/badge/Instagram-18181b?style=for-the-badge&logo=instagram&logoColor=E4405F)](https://www.instagram.com/nightbeamstudio/) [![X](https://img.shields.io/badge/X-18181b?style=for-the-badge&logo=x&logoColor=ffffff)](https://x.com/NightBeamLLC) [![Facebook](https://img.shields.io/badge/Facebook-18181b?style=for-the-badge&logo=facebook&logoColor=1877F2)](https://www.facebook.com/profile.php?id=61574823331471) [![Website](https://img.shields.io/badge/Website-18181b?style=for-the-badge&logo=googlechrome&logoColor=f1c36b)](https://nightbeam.dev/)
 
 **New:** the full documentation, with every API, examples, the migration guide and the changelog, now lives at **[nightbeam.dev/docs/jauml](https://nightbeam.dev/docs/jauml)**.
 
@@ -99,7 +101,7 @@ Then declare it in `fabric.mod.json` (`"jauml": ">=3.0.0"`) or `neoforge.mods.to
 ![Questions](https://raw.githubusercontent.com/MeherBenSalem/jauml/main/marketing/images/header-faq.png)
 
 **Does Jauml do anything on its own?**
-No. It is a library: it loads, writes one small demo config in development environments only, and waits for mods that use it.
+No. It is a library: it loads, writes one small demo config in development environments, never in play, and waits for mods that use it.
 
 **Do I need it on the server and the client?**
 Install it wherever the mod that requires it is installed. Jauml itself sends nothing over the network.
@@ -113,11 +115,18 @@ In your `config` folder, under the folder each mod chose, for example `config/my
 **Where are the docs?**
 On our website: **[Documentation](https://nightbeam.dev/docs/jauml)** · [Typed configs](https://nightbeam.dev/docs/jauml/typed-configs) · [Server events](https://nightbeam.dev/docs/jauml/server-events) · [Platform](https://nightbeam.dev/docs/jauml/platform) · [Migration guide](https://nightbeam.dev/docs/jauml/migration) · [Changelog](https://nightbeam.dev/docs/jauml/changelog) · [Issues](https://github.com/MeherBenSalem/jauml/issues)
 
-**Where can I talk to you?**
-[Discord](https://discord.gg/TJc3CxR4jK) · [YouTube](https://www.youtube.com/@nightbeamstudio) · [More NightBeam mods on Modrinth](https://modrinth.com/organization/nightbeam) and [CurseForge](https://www.curseforge.com/members/nightbeamstudio/projects) · [Support us](https://nightbeam.dev/support)
-
 ---
 
 Jauml is licensed under Apache-2.0. Made by NightBeam Studio.
 
-[![NightBeam Pro: describe a mob, get a 3D model with NightBeam Forge. $2.50 first month, then $5/month](https://raw.githubusercontent.com/MeherBenSalem/jauml/main/marketing/images/pro-forge-banner.png)](https://nightbeam.dev/forge)
+---
+
+### More from NightBeam Studio
+
+- **[Remnants: Ashen Legacy](https://www.curseforge.com/minecraft/modpacks/remnants-ashen-legacy)**: the story-driven soulslike RPG modpack built on NightBeam's mods
+- **[Premium server plugins](https://nightbeam.dev/store)**: anti-cheat, ranked PvP, SMP setups and more on BuiltByBit
+- **[NightBeam Pro](https://nightbeam.dev/memberships)**: the model library and NightBeam Forge credits, from $5 a month
+- **[Discord](https://discord.gg/TJc3CxR4jK)**: support, bug reports, suggestions and early looks
+- **[Support NightBeam](https://nightbeam.dev/support)**: help keep every mod free
+
+**Follow:** [YouTube](https://www.youtube.com/@nightbeamstudio) · [Instagram](https://www.instagram.com/nightbeamstudio/) · [X](https://x.com/NightBeamLLC) · [Facebook](https://www.facebook.com/profile.php?id=61574823331471) · [Source and issues](https://github.com/MeherBenSalem/Jauml)
