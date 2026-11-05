@@ -8,6 +8,10 @@ Jauml (Just Another Utility Minecraft Library) holds the code our mods share: ty
 
 **3.0** is available for **Fabric, NeoForge and Forge** on **1.20.1, 1.21.1, 26.2 and 26.3**. Mods built for Jauml 2.x keep working on it.
 
+[![Documentation](https://img.shields.io/badge/Documentation-f1c36b?style=for-the-badge&logo=readthedocs&logoColor=0a0a0b)](https://nightbeam.dev/docs/jauml) [![Discord](https://img.shields.io/badge/Discord-18181b?style=for-the-badge&logo=discord&logoColor=5865F2)](https://discord.gg/TJc3CxR4jK) [![YouTube](https://img.shields.io/badge/YouTube-18181b?style=for-the-badge&logo=youtube&logoColor=FF0000)](https://www.youtube.com/@nightbeamstudio) [![Instagram](https://img.shields.io/badge/Instagram-18181b?style=for-the-badge&logo=instagram&logoColor=E4405F)](https://www.instagram.com/nightbeamstudio/) [![X](https://img.shields.io/badge/X-18181b?style=for-the-badge&logo=x&logoColor=ffffff)](https://x.com/NightBeamLLC) [![Facebook](https://img.shields.io/badge/Facebook-18181b?style=for-the-badge&logo=facebook&logoColor=1877F2)](https://www.facebook.com/profile.php?id=61574823331471) [![Website](https://img.shields.io/badge/Website-18181b?style=for-the-badge&logo=googlechrome&logoColor=f1c36b)](https://nightbeam.dev/)
+
+**New:** the full documentation, with every API, examples, the migration guide and the changelog, now lives at **[nightbeam.dev/docs/jauml](https://nightbeam.dev/docs/jauml)**.
+
 ![divider](https://raw.githubusercontent.com/MeherBenSalem/jauml/main/marketing/images/divider.png)
 
 ![Typed configs](https://raw.githubusercontent.com/MeherBenSalem/jauml/main/marketing/images/header-configs.png)
@@ -90,7 +94,7 @@ dependencies {
 }
 ```
 
-Then declare it in `fabric.mod.json` (`"jauml": ">=3.0.0"`) or `neoforge.mods.toml` / `mods.toml` (`versionRange = "[3.0.0,)"`). The [migration guide](https://github.com/MeherBenSalem/jauml/blob/main/MIGRATION_GUIDE.md) walks through every API with examples.
+Then declare it in `fabric.mod.json` (`"jauml": ">=3.0.0"`) or `neoforge.mods.toml` / `mods.toml` (`versionRange = "[3.0.0,)"`). The [developer setup guide](https://nightbeam.dev/docs/jauml/developer-setup) and the [migration guide](https://nightbeam.dev/docs/jauml/migration) walk through every API with examples.
 
 ![Questions](https://raw.githubusercontent.com/MeherBenSalem/jauml/main/marketing/images/header-faq.png)
 
@@ -107,7 +111,7 @@ Yes. 3.0 removes nothing from 2.x and changes no signature; a test in the build 
 In your `config` folder, under the folder each mod chose, for example `config/my_mod/common.json`.
 
 **Where are the docs?**
-[Source and README](https://github.com/MeherBenSalem/jauml) · [Migration guide](https://github.com/MeherBenSalem/jauml/blob/main/MIGRATION_GUIDE.md) · [Changelog](https://github.com/MeherBenSalem/jauml/blob/main/CHANGELOG.md) · [Roadmap](https://github.com/MeherBenSalem/jauml/blob/main/ROADMAP.md) · [Issues](https://github.com/MeherBenSalem/jauml/issues)
+On our website: **[Documentation](https://nightbeam.dev/docs/jauml)** · [Typed configs](https://nightbeam.dev/docs/jauml/typed-configs) · [Server events](https://nightbeam.dev/docs/jauml/server-events) · [Platform](https://nightbeam.dev/docs/jauml/platform) · [Migration guide](https://nightbeam.dev/docs/jauml/migration) · [Changelog](https://nightbeam.dev/docs/jauml/changelog) · [Issues](https://github.com/MeherBenSalem/jauml/issues)
 
 **Where can I talk to you?**
 [Discord](https://discord.gg/TJc3CxR4jK) · [YouTube](https://www.youtube.com/@nightbeamstudio) · [More NightBeam mods on Modrinth](https://modrinth.com/organization/nightbeam) and [CurseForge](https://www.curseforge.com/members/nightbeamstudio/projects) · [Support us](https://nightbeam.dev/support)
@@ -115,3 +119,5 @@ In your `config` folder, under the folder each mod chose, for example `config/my
 ---
 
 Jauml is licensed under Apache-2.0. Made by NightBeam Studio.
+
+[![NightBeam Pro: describe a mob, get a 3D model with NightBeam Forge. $2.50 first month, then $5/month](https://raw.githubusercontent.com/MeherBenSalem/jauml/main/marketing/images/pro-forge-banner.png)](https://nightbeam.dev/forge)

@@ -2,6 +2,8 @@
 
 Just Another Utility Minecraft Lib — the shared MultiLoader library behind NightBeam mods: JSON and typed configs, a loader-neutral platform layer, server events with a tick scheduler, and small utilities.
 
+**Documentation:** <https://nightbeam.dev/docs/jauml> (sources in [`docs/`](docs/)).
+
 ## Features
 
 ### Configs

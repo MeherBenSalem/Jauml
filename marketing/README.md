@@ -63,3 +63,11 @@ The artwork uses Barlow Condensed (display), Inter (text) and JetBrains Mono (co
 ## Wording
 
 Jauml is a library: say what it gives mod developers and tell players they only need it when a mod asks for it. Every feature, version and number in the listing comes from the 3.0.0 source, `CHANGELOG.md` and the build; check them there before changing the copy.
+
+## Listing conventions
+
+Right after the opening description comes one row of matching badges (Documentation in gold, then Discord, YouTube, Instagram, X, Facebook and the website: dark single-segment shields.io badges with brand-coloured logos), and the description links the website docs at <https://nightbeam.dev/docs/jauml>. The very last thing is the NightBeam Pro / Forge banner (`images/pro-forge-banner.png`, linking to <https://nightbeam.dev/forge>; source and render command in `source/pro-forge-banner.html`). Keep all of them when rewriting the copy.
+
+## Documentation
+
+`docs/` holds the player and developer documentation, published with the feature cards at <https://nightbeam.dev/docs/jauml> together with `MIGRATION_GUIDE.md`, `CHANGELOG.md`, `BUILD.md` and `ROADMAP.md` (synced by the website's `scripts/sync-repo-docs.mjs jauml`).
