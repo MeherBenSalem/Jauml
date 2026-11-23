@@ -17,6 +17,13 @@ jobs:
 
       # 21 stays JAVA_HOME for the 1.20.1/1.21.1 builds (1.20.1 compiles with the 17 toolchain);
       # the root build hands the 26.x workspaces JAVA_HOME_25_X64.
+      - name: Same version in every workspace, guard tests
+        run: |
+          versions=$(grep -h '^version=' 1.20.1/gradle.properties 1.21.1/gradle.properties 26.2/gradle.properties 26.3/gradle.properties | sort -u)
+          echo "$versions"
+          test "$(echo "$versions" | wc -l)" -eq 1 || { echo "::error::Workspaces disagree on version"; exit 1; }
+          node --test scripts/*.test.mjs
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

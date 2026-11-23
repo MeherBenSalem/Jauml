@@ -8,11 +8,13 @@ Listing copy and artwork for Modrinth and CurseForge. Nothing here ships in the 
 | --- | --- |
 | [`curseforge/description.md`](curseforge/description.md) | Full project description (Markdown; works on Modrinth and CurseForge) |
 | [`curseforge/summary.txt`](curseforge/summary.txt) | Short project summary (197 characters) |
+| [`modrinth/description.md`](modrinth/description.md) | Modrinth description, made from the CurseForge copy by `python3 tools/make_modrinth_md.py .` |
+| [`modrinth/summary.txt`](modrinth/summary.txt) | Modrinth summary (same text) |
 | [`../CHANGELOG.md`](../CHANGELOG.md) | Release notes; the publish workflow uses the top section |
 
 Image links in the description point at `raw.githubusercontent.com/MeherBenSalem/jauml/main/marketing/images/...`, so they work once this folder is on `main`.
 
-The publish workflow's **sync project** option (on by default for tag pushes) sets the Modrinth page's body from `curseforge/description.md`, its summary from `curseforge/summary.txt`, and its icon from `images/icon.png`.
+The publish workflow's **sync project** option (on by default for tag pushes) sets the Modrinth page's body from `modrinth/description.md`, its summary from `modrinth/summary.txt`, and its icon from `images/icon.png`.
 
 ## Images
 

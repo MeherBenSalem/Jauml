@@ -7,6 +7,10 @@
 # Required variables: MODRINTH_ID, CURSEFORGE_ID
 #
 # Usage: git tag v2.1.1 && git push --tags
+#
+# Same-day guard (NightBeam convention): a real release stops if this mod already had a release today
+# (Africa/Tunis calendar day) on Modrinth, CurseForge or an earlier Publish run. Dry runs only report it.
+# Every release must be exactly the 8 convention targets: 1.20.1 Fabric/Forge, 1.21.1, 26.2 and 26.3 Fabric/NeoForge.
 
 name: Publish
 
@@ -32,11 +36,16 @@ on:
         required: false
         default: "false"
 
+concurrency:
+  group: publish-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
 
@@ -52,6 +61,24 @@ jobs:
             echo "Provide a v*.*.* tag or workflow_dispatch version" >&2
             exit 1
           fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Test the same-day guard
+        run: node --test scripts/*.test.mjs
+
+      - name: Same-day guard
+        env:
+          MODRINTH_ID: ${{ vars.MODRINTH_ID }}
+          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PUBLISH_WORKFLOW: publish.yml
+          UPLOAD_STEP: "Upload Modrinth + CurseForge (one version per jar)"
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: node scripts/same_day_guard.mjs
 
       - name: Find prebuilt release jars
         id: prebuilt
@@ -123,14 +150,37 @@ jobs:
             exit 1
           fi
           printf '%s\n' "${JARS[@]}"
+          # Exactly the 8 convention targets, one jar each.
+          EXPECTED="fabric-1.20.1 forge-1.20.1 fabric-1.21.1 neoforge-1.21.1 fabric-26.2 neoforge-26.2 fabric-26.3 neoforge-26.3"
+          FOUND=""
+          for j in "${JARS[@]}"; do
+            n=$(basename "$j" | tr 'A-Z' 'a-z')
+            case "$n" in *neoforge*) l=neoforge;; *fabric*) l=fabric;; *forge*) l=forge;; *) l=unknown;; esac
+            g=$(echo "$n" | grep -oE '(^|-)(26\.[0-9]+(\.[0-9]+)?|1\.[0-9]+(\.[0-9]+)?)(-|$)' | head -1 | tr -d '-')
+            FOUND="$FOUND $l-$g"
+          done
+          want=$(printf '%s\n' $EXPECTED | sort | tr '\n' ' ')
+          got=$(printf '%s\n' $FOUND | sort | tr '\n' ' ')
+          if [ "$want" != "$got" ]; then
+            echo "::error::Expected exactly the 8 convention jars ($want) but found: $got"
+            exit 1
+          fi
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "list<<$EOF" >> "$GITHUB_OUTPUT"
           printf '%s\n' "${JARS[@]}" >> "$GITHUB_OUTPUT"
           echo "$EOF" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+      - name: Same-day guard (again, right before upload)
+        if: ${{ inputs.dry_run != 'true' }}
+        env:
+          MODRINTH_ID: ${{ vars.MODRINTH_ID }}
+          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PUBLISH_WORKFLOW: publish.yml
+          UPLOAD_STEP: "Upload Modrinth + CurseForge (one version per jar)"
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: node scripts/same_day_guard.mjs
 
       - name: Upload Modrinth + CurseForge (one version per jar)
         if: ${{ inputs.dry_run != 'true' }}
@@ -177,8 +227,8 @@ jobs:
           async function syncModrinthProject() {
             const headers = { Authorization: process.env.MODRINTH_TOKEN, 'User-Agent': 'MeherBenSalem/jauml publish' };
             const patch = {};
-            if (fs.existsSync('marketing/curseforge/description.md')) patch.body = fs.readFileSync('marketing/curseforge/description.md', 'utf8');
-            if (fs.existsSync('marketing/curseforge/summary.txt')) patch.description = fs.readFileSync('marketing/curseforge/summary.txt', 'utf8').trim();
+            if (fs.existsSync('marketing/modrinth/description.md')) patch.body = fs.readFileSync('marketing/modrinth/description.md', 'utf8');
+            if (fs.existsSync('marketing/modrinth/summary.txt')) patch.description = fs.readFileSync('marketing/modrinth/summary.txt', 'utf8').trim();
             if (Object.keys(patch).length) {
               const res = await fetch(`https://api.modrinth.com/v2/project/${process.env.MODRINTH_ID}`, {
                 method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(patch),
