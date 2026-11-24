@@ -1,5 +1,5 @@
 # Local build + GitHub release for Jauml MultiLoader.
-# Modrinth/CurseForge (upload-only, no CI build):
+# CurseForge (upload-only, no CI build):
 #   gh workflow run publish.yml --repo MeherBenSalem/jauml -f version=X.Y.Z
 #
 # Usage:
@@ -68,6 +68,5 @@ Write-Host "Jars in dist/ ($($jars.Count)):" -ForegroundColor Cyan
 $jars | ForEach-Object { Write-Host "  $($_.Name)" }
 
 Write-Host ""
-Write-Host "Modrinth + CurseForge (upload-only workflow):" -ForegroundColor Yellow
+Write-Host "CurseForge (upload-only workflow):" -ForegroundColor Yellow
 Write-Host "  gh workflow run publish.yml --repo MeherBenSalem/jauml -f version=$Version"
-Write-Host "  gh workflow run publish.yml --repo MeherBenSalem/jauml -f version=$Version -f curseforge_only=true"

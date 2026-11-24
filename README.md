@@ -43,7 +43,7 @@ On Fabric, install Fabric API alongside Jauml for server events and the schedule
 
 ## Installation
 
-Download the jar matching your Minecraft version and loader from [Modrinth](https://modrinth.com), [CurseForge](https://www.curseforge.com), or [GitHub Releases](https://github.com/MeherBenSalem/jauml/releases).
+Download the jar matching your Minecraft version and loader from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/jauml).
 
 Place the jar in your mods folder. Jauml is a library dependency — end users only need it if a mod they use requires it.
 

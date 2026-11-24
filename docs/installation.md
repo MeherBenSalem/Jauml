@@ -32,6 +32,4 @@ Each mod chooses a folder inside your `config` directory, for example `config/my
 
 ## Downloads
 
-- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/jauml)
-- [Modrinth](https://modrinth.com/mod/jauml)
-- [GitHub releases](https://github.com/MeherBenSalem/jauml/releases)
+- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/jauml) (NightBeam publishes to CurseForge only)
